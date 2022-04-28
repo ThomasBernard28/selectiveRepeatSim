@@ -1,17 +1,22 @@
 package reso.examples.selectiverepeat;
 
 import reso.ip.Datagram;
-import reso.ip.IPAdress;
-import reso.IPHost;
+import reso.ip.IPHost;
 import reso.ip.IPInterfaceAdapter;
 import reso.ip.IPInterfaceListener;
 
+public class SelectiveRepeatProtocol implements IPInterfaceListener {
 
-public class SelectiveRepeatProtocol implements IPInterfaceListener{
+    public static final int IP_PROTO_SR = Datagram.allocateProtocolNumber("SELECTIVE_REPEAT");
 
-	private final IPHost host;
+    private final IPHost host;
 
-	public SelecticeRepeatProtocol(IPHost host){
-		this.host = host
-	}
+    public SelectiveRepeatProtocol(IPHost host) {
+        this.host = host;
+    }
+
+    @Override
+    public void receive(IPInterfaceAdapter src, Datagram datagram) throws Exception{
+        //TODO
+    }
 }

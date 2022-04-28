@@ -13,5 +13,6 @@ package reso.ip;
 public interface IPInterfaceListener {
 
 	void receive(IPInterfaceAdapter src, Datagram datagram) throws Exception;
-	
+
+
 }
