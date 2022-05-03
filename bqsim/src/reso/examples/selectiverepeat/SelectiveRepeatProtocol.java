@@ -1,9 +1,6 @@
 package reso.examples.selectiverepeat;
 
-import reso.ip.Datagram;
-import reso.ip.IPHost;
-import reso.ip.IPInterfaceAdapter;
-import reso.ip.IPInterfaceListener;
+import reso.ip.*;
 
 public class SelectiveRepeatProtocol implements IPInterfaceListener {
 
@@ -17,6 +14,12 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
 
     @Override
     public void receive(IPInterfaceAdapter src, Datagram datagram) throws Exception{
-        //TODO
+        SelectiveRepeatMessage msg = (SelectiveRepeatMessage) datagram.getPayload();
+        System.out.println("Selective-Repeat (" + (int) (host.getNetwork().getScheduler().getCurrentTime()*1000)  +"ms" +
+                " host=" + host.name + ", dgram.src=" + datagram.src + ", dgram.dst=" +
+                datagram.dst + ", iif=" + src + ", data=" + msg.data);
+        if(msg.data > 0){
+            host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_PROTO_SR, new SelectiveRepeatMessage(msg.data -1 ));
+        }
     }
 }
