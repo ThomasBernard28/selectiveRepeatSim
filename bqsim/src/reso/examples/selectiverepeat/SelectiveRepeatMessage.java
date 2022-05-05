@@ -4,9 +4,9 @@ import reso.common.Message;
 
 public class SelectiveRepeatMessage implements Message {
 
-    protected final int data;
+    protected final String data;
 
-    public SelectiveRepeatMessage(int data){
+    public SelectiveRepeatMessage(String data){
         this.data = data;
     }
 

@@ -18,8 +18,9 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
         System.out.println("Selective-Repeat (" + (int) (host.getNetwork().getScheduler().getCurrentTime()*1000)  +"ms" +
                 " host=" + host.name + ", dgram.src=" + datagram.src + ", dgram.dst=" +
                 datagram.dst + ", iif=" + src + ", data=" + msg.data);
-        if(msg.data > 0){
-            host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_PROTO_SR, new SelectiveRepeatMessage(msg.data -1 ));
+
+        if(!msg.data.isEmpty()){
+            host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_PROTO_SR, new SelectiveRepeatMessage(msg.data));
         }
     }
 }
