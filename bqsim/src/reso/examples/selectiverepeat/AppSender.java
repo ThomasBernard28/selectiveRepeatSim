@@ -4,34 +4,36 @@ import reso.common.AbstractApplication;
 import reso.common.Host;
 import reso.ip.IPAddress;
 import reso.ip.IPHost;
-import reso.ip.IPLayer;
 
-import java.util.List;
+import java.util.Random;
 
 public class AppSender extends AbstractApplication {
 
-
-    private final IPLayer ip;
     private final IPAddress dst;
-    //List containing all packets to send
-    private final String data;
-    //Number of the 1st packet in the sending window
-    private int sendBase;
-    //Number of the next packet to send
-    private int nextSeqNum;
 
-    public AppSender(IPHost host, IPAddress dst, String data, int sendBase, int nextSeqNum) {
+    private final int packetNumber;
+
+    private double lossProb;
+
+
+    public AppSender(Host host, IPAddress dst, int packetNumber, double lossProb) {
         super(host, "sender");
         this.dst = dst;
-        this.data = data;
-        this.sendBase = sendBase;
-        this.nextSeqNum = nextSeqNum;
-        ip = host.getIPLayer();
+        this.packetNumber = packetNumber;
+        this.lossProb = lossProb;
     }
 
+
     public void start() throws Exception{
-        ip.addListener(SelectiveRepeatProtocol.IP_PROTO_SR, new SelectiveRepeatProtocol((IPHost) host));
-        ip.send(IPAddress.ANY, dst, SelectiveRepeatProtocol.IP_PROTO_SR, new SelectiveRepeatMessage(data));
+        Random rand = new Random();
+        SelectiveRepeat[] packetLst = new SelectiveRepeat[packetNumber];
+        for (int i = 0; i < packetNumber; i++){
+            packetLst[i] = new SelectiveRepeat(new int[] {rand.nextInt()}, i);
+        }
+        SelectiveRepeatProtocol transport = new SelectiveRepeatProtocol((IPHost) host, packetLst, lossProb);
+        for (int i = 0; i < packetNumber; i++){
+            transport.send(packetLst[i].data[0], dst);
+        }
     }
 
     public void stop(){}

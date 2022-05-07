@@ -8,16 +8,17 @@ public class AppReceiver extends AbstractApplication {
 
     private final IPLayer ip;
 
-    private int recvBase;
+    private double lossProb;
 
-    public AppReceiver(IPHost host){
+    public AppReceiver(IPHost host, double lossProb) {
         super(host, "receiver");
-        ip = host.getIPLayer();
+        this.ip = host.getIPLayer();
+        this.lossProb = lossProb;
     }
 
-    public void start(){
-        ip.addListener(SelectiveRepeatProtocol.IP_PROTO_SR, new SelectiveRepeatProtocol((IPHost) host));
-
+    public void start() throws Exception {
+        SelectiveRepeatProtocol transport = new SelectiveRepeatProtocol((IPHost) host, lossProb);
     }
+
     public void stop(){}
 }
