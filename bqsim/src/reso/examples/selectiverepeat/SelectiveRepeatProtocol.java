@@ -183,10 +183,12 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
 
 
             double x = random.nextDouble();
+            //If x is greater than the loss probability then the packet is sent.
             if(x > lossProb){
                 System.out.println("SENDING PACKET N° : " + seqNbr);
                 host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
             }
+            //Else the packet is lost
             else{
                 System.out.println(" WARNING : PACKET N° : "  + packet.sequenceNumber + " IS LOST");
             }
