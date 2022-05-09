@@ -3,19 +3,19 @@ package reso.examples.selectiverepeat;
 
 import reso.common.Message;
 
-public class SelectiveRepeat implements Message {
+public class SRMessage implements Message {
 
     public final int[] data;
     public final int sequenceNumber;
     public final boolean ackD;
 
-    public SelectiveRepeat(int sequenceNumber) {
+    public SRMessage(int sequenceNumber) {
         this.sequenceNumber = sequenceNumber;
         this.ackD = true;
         this.data = new int[]{};
     }
 
-    public SelectiveRepeat(int[] data, int sequenceNumber){
+    public SRMessage(int[] data, int sequenceNumber){
         this.data = data;
         this.ackD = false;
         this.sequenceNumber = sequenceNumber;

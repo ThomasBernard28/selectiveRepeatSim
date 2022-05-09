@@ -45,7 +45,7 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
 
     private Datagram ack = null;
 
-    private SelectiveRepeat[] packetLst;
+    private SRMessage[] packetLst;
 
     private static Random random = new Random();
 
@@ -122,7 +122,7 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
         this.lossProb = lossProb;
     }
 
-    public SelectiveRepeatProtocol(IPHost host, SelectiveRepeat[] packetLst, double lossProb){
+    public SelectiveRepeatProtocol(IPHost host, SRMessage[] packetLst, double lossProb){
         this.host = host;
         this.packetLst = packetLst;
         host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
@@ -178,7 +178,7 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
     public void send(int data, IPAddress dst) throws Exception{
         if(seqNbr < sendBase + size && seqNbr < packetLst.length){
             int[] segmentData = new int[]{data};
-            SelectiveRepeat packet = new SelectiveRepeat(segmentData, seqNbr);
+            SRMessage packet = new SRMessage(segmentData, seqNbr);
             packetLst[seqNbr] = packet;
 
 
@@ -203,7 +203,7 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
     }
 
     public void sendACK(Datagram datagram) throws Exception{
-        SelectiveRepeat packet = new SelectiveRepeat(((SelectiveRepeat) datagram.getPayload()).sequenceNumber);
+        SRMessage packet = new SRMessage(((SRMessage) datagram.getPayload()).sequenceNumber);
 
         double x = random.nextDouble();
         if(x > lossProb){
@@ -215,7 +215,7 @@ public class SelectiveRepeatProtocol implements IPInterfaceListener {
 
     @Override
     public void receive(IPInterfaceAdapter src, Datagram datagram) throws Exception{
-        SelectiveRepeat segment = (SelectiveRepeat) datagram.getPayload();
+        SRMessage segment = (SRMessage) datagram.getPayload();
 
         //If ack segment its part of sender side
         if (segment.isAckD()){
