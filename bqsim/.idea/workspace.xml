@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dae3db10-10b5-4dd5-81ad-716dae2a9c74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppReceiver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppReceiver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppSender.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppSender.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/Demo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/Demo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/SRPacket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/SRPacket.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/SRProtocol.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/SRProtocol.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -186,12 +181,10 @@
       <item itemvalue="Application.Demo (2)" />
       <item itemvalue="Application.Demo (3)" />
       <item itemvalue="Application.Demo (4)" />
-      <item itemvalue="Application.Demo (1)" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.Demo" />
-        <item itemvalue="Application.Demo (1)" />
         <item itemvalue="Application.Demo (4)" />
         <item itemvalue="Application.Demo (3)" />
         <item itemvalue="Application.Demo (2)" />
@@ -212,6 +205,7 @@
       <workItem from="1651930033309" duration="96000" />
       <workItem from="1651930159333" duration="78000" />
       <workItem from="1652100045472" duration="6195000" />
+      <workItem from="1652203235451" duration="787000" />
     </task>
     <servers />
   </component>

@@ -79,6 +79,13 @@ public class SRProtocol extends IPInterfaceListener {
 
     private String dataExport;
 
+    // SELECTIVE REPEAT TIMER --------------------------------
+
+    protected SRTimer srTimer;
+
+    private int tripleAck = 0;
+
+    private int repeatedAck = -1;
 
 
     //TIMER CLASS --------------------------------------------
@@ -138,5 +145,37 @@ public class SRProtocol extends IPInterfaceListener {
         host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
         this.lossProb = lossProb;
     }
+
+    public void timeout(IPAddress dst, int seqNumber) throws Exception{
+
+    }
+
+    private double getSRTT(){
+        if (SRTT > 0){
+            SRTT = ((1 - ALPHA) * this.SRTT + (ALPHA * srTimer.getR()));
+        }
+        else{
+            SRTT = srTimer.getR();
+        }
+        return SRTT;
+    }
+
+    private double getDevRTT(){
+        if (DevRTT > 0){
+            DevRTT = ((1 - BETA) * DevRTT + (BETA * Math.abs(getSRTT() - srTimer.getR())));
+        }
+        else{
+            DevRTT = srTimer.getR()/2;
+        }
+        return DevRTT;
+    }
+
+    private void changeRTO(){
+        double devRTT = getDevRTT();
+        RTO = 4*devRTT + getSRTT();
+    }
+
+
+
 
 }
