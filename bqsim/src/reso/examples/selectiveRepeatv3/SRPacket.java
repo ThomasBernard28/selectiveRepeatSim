@@ -1,7 +1,6 @@
-package reso.examples.selectiveRepeatv2;
+package reso.examples.selectiveRepeatv3;
 
 import reso.common.Message;
-import reso.examples.selectiverepeat.SRMessage;
 
 public class SRPacket implements Message {
 

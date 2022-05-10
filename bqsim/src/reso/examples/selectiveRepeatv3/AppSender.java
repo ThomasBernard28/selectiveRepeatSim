@@ -1,4 +1,4 @@
-package reso.examples.selectiveRepeatv2;
+package reso.examples.selectiveRepeatv3;
 
 import reso.common.AbstractApplication;
 import reso.common.Host;
@@ -24,7 +24,7 @@ public class AppSender extends AbstractApplication {
         this.lossProb = lossProb;
     }
 
-    public void star() throws Exception{
+    public void start() throws Exception{
         Random random = new Random();
         SRPacket[] packetLst = new SRPacket[packetNumber];
         for(int i = 0; i < packetNumber; i++){
@@ -32,4 +32,6 @@ public class AppSender extends AbstractApplication {
         }
         //TODO call the protocol here to use the transport layer;
     }
+
+    public void stop(){}
 }
