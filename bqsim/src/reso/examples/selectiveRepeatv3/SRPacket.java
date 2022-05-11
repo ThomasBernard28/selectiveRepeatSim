@@ -28,6 +28,10 @@ public class SRPacket implements Message {
         this.data = -1;
     }
 
+    public boolean isAnAck() {
+        return this.isAnAck;
+    }
+
     public String toString(){
         return "Packet [seq number = " + seqNumber + ", Is an ACK = " + isAnAck + "]";
     }

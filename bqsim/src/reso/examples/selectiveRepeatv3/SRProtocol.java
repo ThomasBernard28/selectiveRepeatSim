@@ -1,181 +1,109 @@
 package reso.examples.selectiveRepeatv3;
 
-import reso.common.AbstractTimer;
-import reso.ip.Datagram;
-import reso.ip.IPAddress;
-import reso.ip.IPHost;
-import reso.ip.IPInterfaceListener;
-import reso.scheduler.AbstractScheduler;
+import reso.examples.selectiverepeat.SRMessage;
+import reso.ip.*;
 
-import java.util.Random;
-
-public class SRProtocol extends IPInterfaceListener {
-
-
-    //IP ADDRESS VARIABLES -------------------------------------
-
-    public final IPHost host;
+public class SRProtocol implements IPInterfaceListener{
 
     public static final int IP_SR_PROTOCOL = Datagram.allocateProtocolNumber("SELECTIVE_REPEAT");
 
-    // SELECTIVE REPEAT ----------------------------------------
+    private final IPHost host;
 
-    /**
-     * Sequence number of the current packet being treated
-     */
+
     public int seqNumber = 0;
 
-    /**
-     * Sequence number of the first packet in the emission window
-     */
-    public int sendBase = 0;
-
-    /**
-     * Sequence number of the first packet in the reception window
-     */
-    public int recvBase = 0;
-
-    /**
-     * Size of the window
-     */
     public double size = 1;
 
-    // PACKET RELATED ------------------------------------------
+    public int sendBase = 0;
 
-    private Datagram ack = null;
+    public int recvBase = 0;
 
-    private SRPacket[] packetLst;
+    public SRPacket[] packetLst;
 
-    private SRPacket[] buffer;
+    public SRPacket[] buffer;
 
-    private static Random random = new Random();
-
-    private double lossProb;
-
-    // RTP CALCULATION -----------------------------------------
-
-    private static double ALPHA = 0.125;
-
-    private static double BETA  = 0.25;
-
-    private double SRTT;
-
-    private double DevRTT;
-
-    private double RTO = 3;
-
-    // CONGESTION CONTROL --------------------------------------
-
-    private double oldSize;
-
-    private double newSize;
-
-    private final int MSS = 1;
-
-    private double sstresh = 20;
+    private Datagram[] acks;
 
 
-    // DATA EXPORT -------------------------------------------
-
-    private String dataExport;
-
-    // SELECTIVE REPEAT TIMER --------------------------------
-
-    protected SRTimer srTimer;
-
-    private int tripleAck = 0;
-
-    private int repeatedAck = -1;
-
-
-    //TIMER CLASS --------------------------------------------
-    private class SRTimer extends AbstractTimer{
-
-        private IPAddress dst;
-
-        private double startTime;
-
-        private double stopTime;
-
-        private int seqNumber;
-
-        public SRTimer(AbstractScheduler scheduler, double interval, IPAddress dst, int seqNumber){
-            super(scheduler, interval, false);
-            this.dst = dst;
-            this.seqNumber = seqNumber;
-        }
-
-        protected void run() throws Exception{
-            //timeout(seqNumber, dst);
-            System.out.println("app=[" + host.name + "]" +
-                    " time" + scheduler.getCurrentTime());
-
-        }
-
-        @Override
-        public void start(){
-            if (seqNumber < packetLst.length){
-                super.start();
-                startTime = scheduler.getCurrentTime();
-            }
-        }
-
-        @Override
-        public void stop(){
-            super.stop();
-            stopTime = scheduler.getCurrentTime();
-        }
-
-        public double getR(){
-            return stopTime - startTime;
-        }
-    }
-    //receiver
-    public SRProtocol(IPHost host, double lossProb, SRPacket[] buffer) throws Exception{
+    public SRProtocol(IPHost host) throws Exception{
         this.host = host;
         host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
-        this.lossProb = lossProb;
-        this.buffer = buffer;
+        //this.lossProb = lossProb;
     }
 
-    //sender
-    public SRProtocol(IPHost host, SRPacket[] packetLst, double lossProb){
+    public SRProtocol(IPHost host, SRPacket[] packetLst){
         this.host = host;
         this.packetLst = packetLst;
+        this.buffer = new SRPacket[packetLst.length];
+        this.acks = new Datagram[packetLst.length];
         host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
-        this.lossProb = lossProb;
+        //this.lossProb = lossProb;
     }
 
-    public void timeout(IPAddress dst, int seqNumber) throws Exception{
 
-    }
+    public void send(int data, IPAddress dst) throws Exception{
+        if (seqNumber < sendBase + size && seqNumber < packetLst.length){
+            SRPacket packet = new SRPacket(data, seqNumber);
+            packetLst[seqNumber] = packet;
 
-    private double getSRTT(){
-        if (SRTT > 0){
-            SRTT = ((1 - ALPHA) * this.SRTT + (ALPHA * srTimer.getR()));
+            //determine loss prob
+
+            System.out.println("SENDING PACKET N° : " + seqNumber);
+            host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
+
+            //démarer le timer dans le cas où le seqNumber est le premier packet de la window
+
+            if (seqNumber == sendBase){
+                //TODO create timer for the packet
+                //TODO start timer
+            }
+            seqNumber ++;
         }
+    }
+
+    public void sendACK(Datagram datagram) throws Exception{
+        SRPacket packet = new SRPacket(((SRPacket) datagram.getPayload()).seqNumber);
+
+        //loss prob for the ack
+
+        System.out.println("SENDING ACK FOR PACKET N° : " + packet.seqNumber);
+        host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_SR_PROTOCOL, packet);
+
+         acks[seqNumber] = datagram;
+    }
+
+    @Override
+    public void receive(IPInterfaceAdapter src, Datagram datagram) throws Exception{
+
+        SRPacket packet = (SRPacket) datagram.getPayload();
+
+        //first check if its an ACK
+
+        if (packet.isAnAck()){
+            //First check for corruption
+            System.out.println(" RECEIVED ACK N° : " +packet.seqNumber);
+            //TODO
+        }
+
+
+        //reciever side
         else{
-            SRTT = srTimer.getR();
+            System.out.println(" RECEIVED PACKET N° : " + packet.seqNumber);
+            if (packet.seqNumber >= recvBase && packet.seqNumber <= recvBase + size -1){
+                buffer[seqNumber] = packet;
+                //TODO sendACK(datagram);
+                if (seqNumber == recvBase){
+                    //TODO DELIVER DATA TO APP
+                    recvBase ++;
+                    while(buffer[recvBase] != null){
+                        //deliverData(buffer[recvBase].data)
+                        recvBase ++;
+                    }
+                }
+                else if (packet.seqNumber >= recvBase - size && packet.seqNumber <= recvBase -1){
+                    //sendACK(datagram)
+                }
+            }
         }
-        return SRTT;
     }
-
-    private double getDevRTT(){
-        if (DevRTT > 0){
-            DevRTT = ((1 - BETA) * DevRTT + (BETA * Math.abs(getSRTT() - srTimer.getR())));
-        }
-        else{
-            DevRTT = srTimer.getR()/2;
-        }
-        return DevRTT;
-    }
-
-    private void changeRTO(){
-        double devRTT = getDevRTT();
-        RTO = 4*devRTT + getSRTT();
-    }
-
-
-
-
 }
