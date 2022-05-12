@@ -39,6 +39,14 @@ public class SRProtocol implements IPInterfaceListener{
 
     private SRTimer[] timers;
 
+    //TODO TRIPLE ACK
+
+    //TODO REPEATED ACK
+
+    //TODO CONGESTION
+
+    //TODO RTT, RTO, ETC
+
     //TIMER CLASS
 
     private class SRTimer extends AbstractTimer {
