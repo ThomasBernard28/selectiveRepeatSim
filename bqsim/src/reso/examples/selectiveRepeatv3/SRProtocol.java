@@ -1,7 +1,11 @@
 package reso.examples.selectiveRepeatv3;
 
+import reso.common.AbstractTimer;
 import reso.examples.selectiverepeat.SRMessage;
 import reso.ip.*;
+import reso.scheduler.AbstractScheduler;
+
+import java.util.Random;
 
 public class SRProtocol implements IPInterfaceListener{
 
@@ -25,21 +29,90 @@ public class SRProtocol implements IPInterfaceListener{
 
     private Datagram[] acks;
 
-    // CONSTRUCTORS AND METHODS
+    //LOSS PROBABILITY VARIABLES
 
-    public SRProtocol(IPHost host) throws Exception{
-        this.host = host;
-        host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
-        //this.lossProb = lossProb;
+    private static Random random = new Random();
+
+    private double lossProb;
+
+    //TIMER VARIABLES
+
+    private SRTimer[] timers;
+
+    //TIMER CLASS
+
+    private class SRTimer extends AbstractTimer {
+
+        //Time at the start of the timer
+        private double startTime;
+
+        //Time at the end of the timer
+        private double stopTime;
+
+        private IPAddress dst;
+
+        private int seqNumber;
+
+        public SRTimer(AbstractScheduler scheduler, double interval, IPAddress dst, int seqNumber){
+            super(scheduler, interval, false);
+            this.dst =dst;
+            this.seqNumber = seqNumber;
+        }
+
+        protected void run() throws Exception{
+            timeout(dst, seqNumber);
+            System.out.println("App=[" + host.name + "] Packet : " +seqNumber + " time= " +scheduler.getCurrentTime());
+        }
+
+        @Override
+        public void start(){
+            if (seqNumber < packetLst.length){
+                super.start();
+                startTime = scheduler.getCurrentTime();
+            }
+        }
+
+        @Override
+        public void stop(){
+            super.stop();
+            stopTime = scheduler.getCurrentTime();
+        }
+
+        public double getR(){
+            return stopTime - startTime;
+        }
     }
 
-    public SRProtocol(IPHost host, SRPacket[] packetLst){
+    // CONSTRUCTORS AND METHODS
+
+    public SRProtocol(IPHost host, double lossProb) throws Exception{
+        this.host = host;
+        host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
+        this.lossProb = lossProb;
+    }
+
+    public SRProtocol(IPHost host, SRPacket[] packetLst, double lossProb){
         this.host = host;
         this.packetLst = packetLst;
         this.buffer = new SRPacket[packetLst.length];
         this.acks = new Datagram[packetLst.length];
         host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
-        //this.lossProb = lossProb;
+        this.lossProb = lossProb;
+    }
+
+    public void timeout(IPAddress dst, int seqNumber)throws Exception{
+        //TODO ADD RTT AND CONGESTION
+        timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), /*RTO*/ 3, dst, seqNumber);
+        timers[seqNumber].start();
+
+        //TODO CHECK CORRUPTION
+
+        System.out.println(" WARNING : Resend packet N° : " + seqNumber);
+        host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packetLst[seqNumber]);
+
+        //TODO CHANGE SSTHRESH
+        size = 1;
+        //TODO MANAGE DATA EXPORT
     }
 
 
@@ -48,16 +121,25 @@ public class SRProtocol implements IPInterfaceListener{
             SRPacket packet = new SRPacket(data, seqNumber);
             packetLst[seqNumber] = packet;
 
-            //determine loss prob
 
-            System.out.println("SENDING PACKET N° : " + seqNumber);
-            host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
+            double x = random.nextDouble();
+            //In this case we can send the data because x is greater than the loss prob
+            if (x > lossProb){
+                System.out.println("SENDING PACKET N° : " + seqNumber);
+                host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
+            }
+            else{
+                System.out.println(" WARNING : PACKET N° : " +packet.seqNumber + " IS LOST");
+            }
 
             //démarer le timer dans le cas où le seqNumber est le premier packet de la window
 
             if (seqNumber == sendBase){
-                //TODO create timer for the packet
-                //TODO start timer
+                if (timers[seqNumber] != null){
+                    //TODO CHANGE THE RTO
+                }
+                timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), /*RT0*/ 3, dst, seqNumber);
+                timers[seqNumber].start();
             }
             seqNumber ++;
         }
@@ -66,12 +148,13 @@ public class SRProtocol implements IPInterfaceListener{
     public void sendACK(Datagram datagram) throws Exception{
         SRPacket packet = new SRPacket(((SRPacket) datagram.getPayload()).seqNumber);
 
-        //loss prob for the ack
+        double x = random.nextDouble();
 
-        System.out.println("SENDING ACK FOR PACKET N° : " + packet.seqNumber);
-        host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_SR_PROTOCOL, packet);
-
-         acks[seqNumber] = datagram;
+        if(x > lossProb){
+            System.out.println("SENDING ACK FOR PACKET N° : " + packet.seqNumber);
+            host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_SR_PROTOCOL, packet);
+        }
+        acks[seqNumber] = datagram;
     }
 
     @Override
