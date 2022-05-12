@@ -5,11 +5,12 @@ import reso.ip.*;
 
 public class SRProtocol implements IPInterfaceListener{
 
+    // IP VARIABLES
     public static final int IP_SR_PROTOCOL = Datagram.allocateProtocolNumber("SELECTIVE_REPEAT");
 
     private final IPHost host;
 
-
+    //PACKET VARIABLES
     public int seqNumber = 0;
 
     public double size = 1;
@@ -24,6 +25,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     private Datagram[] acks;
 
+    // CONSTRUCTORS AND METHODS
 
     public SRProtocol(IPHost host) throws Exception{
         this.host = host;
