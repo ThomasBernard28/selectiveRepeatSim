@@ -132,8 +132,8 @@ public class SRProtocol implements IPInterfaceListener{
                 System.out.println(" WARNING : PACKET N° : " +packet.seqNumber + " IS LOST");
             }
 
-            //démarer le timer dans le cas où le seqNumber est le premier packet de la window
-
+            //If the current packet is the first packet to be sent in the emission window then run a timer on it
+            //before sending it.
             if (seqNumber == sendBase){
                 if (timers[seqNumber] != null){
                     //TODO CHANGE THE RTO
