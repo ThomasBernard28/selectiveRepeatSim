@@ -17,7 +17,7 @@ public class AppReceiver extends AbstractApplication {
     }
 
     public void start() throws Exception{
-        //TODO call the trnasport layer protocol
+        SRProtocol transport = new SRProtocol((IPHost) host, lossProb);
     }
 
     public void stop(){}

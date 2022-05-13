@@ -1,7 +1,6 @@
 package reso.examples.selectiveRepeatv3;
 
 import reso.common.AbstractTimer;
-import reso.examples.selectiverepeat.SRMessage;
 import reso.ip.*;
 import reso.scheduler.AbstractScheduler;
 
@@ -39,13 +38,27 @@ public class SRProtocol implements IPInterfaceListener{
 
     private SRTimer[] timers;
 
-    //TODO TRIPLE ACK
+    private int tripleAck = 0;
 
-    //TODO REPEATED ACK
+    private int rpdtAck = -1;
+
+    // RTP VARIABLES
+
+    private static double alpha = 0.125;
+
+    private static double beta = 0.25;
+
+    private double srtt;
+
+    private double devRtt;
+
+    private double rto = 3;
+
+    //DATA EXPORT VARIABLES
+
+    private String dataExport;
 
     //TODO CONGESTION
-
-    //TODO RTT, RTO, ETC
 
     //TIMER CLASS
 
@@ -93,6 +106,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     // CONSTRUCTORS AND METHODS
 
+
     public SRProtocol(IPHost host, double lossProb) throws Exception{
         this.host = host;
         host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
@@ -104,23 +118,55 @@ public class SRProtocol implements IPInterfaceListener{
         this.packetLst = packetLst;
         this.buffer = new SRPacket[packetLst.length];
         this.acks = new Datagram[packetLst.length];
-        host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
+        this.timers = new SRTimer[packetLst.length];
         this.lossProb = lossProb;
+        host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
+    }
+
+    private double getSRTT(int seqNumber){
+        if (srtt > 0){
+            srtt = ((1-alpha) * this.srtt + (alpha * timers[seqNumber].getR()));
+        }
+        else{
+            srtt = timers[seqNumber].getR();
+        }
+        return srtt;
+    }
+
+    private double getDevRtt(int seqNumber){
+        if (devRtt > 0){
+            devRtt = ((1-beta) * devRtt + (beta * Math.abs(getSRTT(seqNumber) - timers[seqNumber].getR())));
+        }
+        else{
+            devRtt = timers[seqNumber].getR();
+        }
+        return devRtt;
+    }
+
+    private void changeRTO(int seqNumber){
+        double devRTT = getDevRtt(seqNumber);
+        rto = 4 * devRTT + getSRTT(seqNumber);
     }
 
     public void timeout(IPAddress dst, int seqNumber)throws Exception{
-        //TODO ADD RTT AND CONGESTION
+        changeRTO(seqNumber);
         timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), /*RTO*/ 3, dst, seqNumber);
         timers[seqNumber].start();
 
-        //TODO CHECK CORRUPTION
+        if (tripleAck == 3){
+            System.out.println(" WARNING : Triple Ack");
+        }
+
+        else{
+            System.out.println(" WARNING : TIMEOUT");
+        }
 
         System.out.println(" WARNING : Resend packet N° : " + seqNumber);
         host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packetLst[seqNumber]);
 
         //TODO CHANGE SSTHRESH
         size = 1;
-        //TODO MANAGE DATA EXPORT
+        dataExport += "Current Time : " + host.getNetwork().getScheduler().getCurrentTime() + ", Window size :" + size + "\n";
     }
 
 
@@ -142,11 +188,11 @@ public class SRProtocol implements IPInterfaceListener{
 
             //If the current packet is the first packet to be sent in the emission window then run a timer on it
             //before sending it.
-            if (seqNumber == sendBase){
+            if (seqNumber == sendBase && seqNumber != 0){
                 if (timers[seqNumber] != null){
-                    //TODO CHANGE THE RTO
+                    changeRTO(seqNumber);
                 }
-                timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), /*RT0*/ 3, dst, seqNumber);
+                timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), rto, dst, seqNumber);
                 timers[seqNumber].start();
             }
             seqNumber ++;

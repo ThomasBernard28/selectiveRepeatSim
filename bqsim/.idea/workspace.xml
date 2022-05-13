@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="dae3db10-10b5-4dd5-81ad-716dae2a9c74" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppReceiver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppReceiver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppSender.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/AppSender.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/SRProtocol.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeatv3/SRProtocol.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -223,7 +225,7 @@
       <workItem from="1652100045472" duration="6195000" />
       <workItem from="1652203235451" duration="787000" />
       <workItem from="1652284807672" duration="25000" />
-      <workItem from="1652284866469" duration="7552000" />
+      <workItem from="1652284866469" duration="10093000" />
     </task>
     <servers />
   </component>
