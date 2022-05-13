@@ -58,7 +58,15 @@ public class SRProtocol implements IPInterfaceListener{
 
     private String dataExport;
 
-    //TODO CONGESTION
+    //CONGESTION WINDOW CONTROL
+
+    private double oldSize;
+
+    private double newSize;
+
+    private final int mss = 1;
+
+    private double slowStartTresh = 20;
 
     //TIMER CLASS
 
@@ -103,7 +111,6 @@ public class SRProtocol implements IPInterfaceListener{
             return stopTime - startTime;
         }
     }
-
     // CONSTRUCTORS AND METHODS
 
 
@@ -164,7 +171,7 @@ public class SRProtocol implements IPInterfaceListener{
         System.out.println(" WARNING : Resend packet N° : " + seqNumber);
         host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packetLst[seqNumber]);
 
-        //TODO CHANGE SSTHRESH
+        slowStartTresh = size / 2;
         size = 1;
         dataExport += "Current Time : " + host.getNetwork().getScheduler().getCurrentTime() + ", Window size :" + size + "\n";
     }
