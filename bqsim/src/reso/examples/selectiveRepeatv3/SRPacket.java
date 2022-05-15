@@ -47,6 +47,6 @@ public class SRPacket implements Message {
     @Override
     public int getByteLength(){
         //Selective Repeat Packet carries a single integer in our case;
-        return Integer.SIZE/8;
+        return isAnAck ?  4 : Integer.SIZE/8 + 4;
     }
 }

@@ -34,16 +34,20 @@ public class Demo {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter the number of packet you want to send : ");
-        int packetNbr = scanner.nextInt();
+        //int packetNbr = scanner.nextInt();
+        int packetNbr = 10;
 
         System.out.println("Enter the link length (in km) : ");
-        int linkLength = scanner.nextInt();
+        //int linkLength = scanner.nextInt();
+        int linkLength = 1000;
 
         System.out.println("Enter the bitrate : ");
-        int bitrate = scanner.nextInt();
+        //int bitrate = scanner.nextInt();
+        int bitrate = 50;
 
         System.out.println("Enter the loss probability of packets (from 0,00 to 1,00) : ");
-        double lossProb = scanner.nextDouble();
+        //double lossProb = scanner.nextDouble();
+        double lossProb = 0.1;
 
         try{
             final EthernetAddress MAC_ADDR1= EthernetAddress.getByAddress(0x00, 0x26, 0xbb, 0x4e, 0xfc, 0x28);

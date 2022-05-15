@@ -4,6 +4,8 @@ import reso.common.AbstractTimer;
 import reso.ip.*;
 import reso.scheduler.AbstractScheduler;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class SRProtocol implements IPInterfaceListener{
@@ -25,8 +27,6 @@ public class SRProtocol implements IPInterfaceListener{
     public SRPacket[] packetLst;
 
     public SRPacket[] buffer;
-
-    private Datagram[] acks;
 
     //LOSS PROBABILITY VARIABLES
 
@@ -87,7 +87,7 @@ public class SRProtocol implements IPInterfaceListener{
             this.dst =dst;
             this.seqNumber = seqNumber;
         }
-
+        @Override
         protected void run() throws Exception{
             timeout(dst, seqNumber);
             System.out.println("App=[" + host.name + "] Packet : " +seqNumber + " time= " +scheduler.getCurrentTime());
@@ -113,21 +113,21 @@ public class SRProtocol implements IPInterfaceListener{
     }
     // CONSTRUCTORS AND METHODS
 
-
+    //Receiver constructor
     public SRProtocol(IPHost host, double lossProb) throws Exception{
         this.host = host;
-        host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
+        host.getIPLayer().addListener(IP_SR_PROTOCOL, this);
         this.lossProb = lossProb;
+        this.buffer = new SRPacket[50];
     }
 
     public SRProtocol(IPHost host, SRPacket[] packetLst, double lossProb){
         this.host = host;
         this.packetLst = packetLst;
         this.buffer = new SRPacket[packetLst.length];
-        this.acks = new Datagram[packetLst.length];
         this.timers = new SRTimer[packetLst.length];
         this.lossProb = lossProb;
-        host.getIPLayer().addListener(this.IP_SR_PROTOCOL, this);
+        host.getIPLayer().addListener(IP_SR_PROTOCOL, this);
     }
 
     private double getSRTT(int seqNumber){
@@ -188,6 +188,7 @@ public class SRProtocol implements IPInterfaceListener{
             if (x > lossProb){
                 System.out.println("SENDING PACKET N° : " + seqNumber);
                 host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
+                timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), rto, dst, seqNumber);
             }
             else{
                 System.out.println(" WARNING : PACKET N° : " +packet.seqNumber + " IS LOST");
@@ -215,7 +216,6 @@ public class SRProtocol implements IPInterfaceListener{
             System.out.println("SENDING ACK FOR PACKET N° : " + packet.seqNumber);
             host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_SR_PROTOCOL, packet);
         }
-        acks[seqNumber] = datagram;
     }
 
     @Override
@@ -225,10 +225,10 @@ public class SRProtocol implements IPInterfaceListener{
 
         //first check if its an ACK
 
-        if (packet.isAnAck()){
+        if(packet.isAnAck()){
             //First check for corruption ?????
             System.out.println(" RECEIVED ACK N° : " +packet.seqNumber);
-            if(sendBase <= packet.seqNumber && packet.seqNumber < sendBase + buffer.length) {
+            if(sendBase <= packet.seqNumber && packet.seqNumber < sendBase + size) {
                timers[packet.seqNumber].stop();
                packetLst[sendBase].setAsAcknowledged();
                 if(packet.seqNumber == sendBase) {
@@ -241,22 +241,31 @@ public class SRProtocol implements IPInterfaceListener{
 
         //reciever side
         else{
-            System.out.println(" RECEIVED PACKET N° : " + packet.seqNumber);
+            if(packet.seqNumber - recvBase >= buffer.length) {
+                System.out.println("out of window " + (packet.seqNumber - recvBase));
+                return;
+            }
+
+            System.out.println("RECEIVED PACKET N° : " + packet.seqNumber);
             if (recvBase <= packet.seqNumber && packet.seqNumber < recvBase + size){
-                buffer[seqNumber] = packet;
-                //TODO sendACK(datagram);
-                if (seqNumber == recvBase){
-                    //TODO DELIVER DATA TO APP
-                    recvBase ++;
-                    while(buffer[recvBase] != null){
-                        //deliverData(buffer[recvBase].data)
+
+                sendACK(datagram);
+                if (packet.seqNumber == recvBase){
+                    //for(int i = 0; i < 10; i++) System.out.print(buffer[i]);
+                    recvBase++;
+                    while(buffer[recvBase - packet.seqNumber] != null){
+                        //deliverData(buffer[recvBase].data);
                         recvBase ++;
                     }
+                } else {
+                    buffer[packet.seqNumber - recvBase] = packet;
                 }
-                else if (packet.seqNumber >= recvBase - size && packet.seqNumber <= recvBase -1){
-                    //sendACK(datagram)
-                }
+
+            } else if (recvBase - size <= packet.seqNumber && packet.seqNumber < recvBase){
+                sendACK(datagram);
             }
         }
     }
+
+    private final ArrayList<Integer> appData = new ArrayList<>();
 }
