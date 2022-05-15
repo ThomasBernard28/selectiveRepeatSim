@@ -15,10 +15,10 @@ public class AppReceiver extends AbstractApplication {
         this.ip = host.getIPLayer();
         this.lossProb = lossProb;
     }
-
+    @Override
     public void start() throws Exception{
-        SRProtocol transport = new SRProtocol((IPHost) host, lossProb);
+        new SRProtocol((IPHost) host, lossProb);
     }
-
+    @Override
     public void stop(){}
 }

@@ -226,16 +226,23 @@ public class SRProtocol implements IPInterfaceListener{
         //first check if its an ACK
 
         if (packet.isAnAck()){
-            //First check for corruption
+            //First check for corruption ?????
             System.out.println(" RECEIVED ACK N° : " +packet.seqNumber);
-            //TODO
+            if(sendBase <= packet.seqNumber && packet.seqNumber < sendBase + buffer.length) {
+               timers[packet.seqNumber].stop();
+               packetLst[sendBase].setAsAcknowledged();
+                if(packet.seqNumber == sendBase) {
+                    while (packetLst[sendBase].isAcknowledged() && sendBase < packetLst.length)
+                        sendBase ++;
+                }
+            }
         }
 
 
         //reciever side
         else{
             System.out.println(" RECEIVED PACKET N° : " + packet.seqNumber);
-            if (packet.seqNumber >= recvBase && packet.seqNumber <= recvBase + size -1){
+            if (recvBase <= packet.seqNumber && packet.seqNumber < recvBase + size){
                 buffer[seqNumber] = packet;
                 //TODO sendACK(datagram);
                 if (seqNumber == recvBase){

@@ -24,7 +24,7 @@ public class AppSender extends AbstractApplication {
         this.totalPacketNumber = totalPacketNumber;
         this.lossProb = lossProb;
     }
-
+    @Override
     public void start() throws Exception{
         Random random = new Random();
         SRPacket[] packetLst = new SRPacket[totalPacketNumber];
@@ -37,6 +37,6 @@ public class AppSender extends AbstractApplication {
             transport.send(packetLst[packetToSend].data, dst);
         }
     }
-
+    @Override
     public void stop(){}
 }

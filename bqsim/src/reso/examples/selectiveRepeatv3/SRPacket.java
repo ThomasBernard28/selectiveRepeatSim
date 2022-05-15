@@ -8,6 +8,8 @@ public class SRPacket implements Message {
     public final int seqNumber;
     public final boolean isAnAck;
 
+    public boolean acknowledged = false;
+
     /**
      * Constructor for a packet
      * @param data
@@ -30,6 +32,12 @@ public class SRPacket implements Message {
 
     public boolean isAnAck() {
         return this.isAnAck;
+    }
+
+    public boolean isAcknowledged() { return this.acknowledged; }
+
+    public void setAsAcknowledged() {
+        this.acknowledged = true;
     }
 
     public String toString(){
