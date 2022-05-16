@@ -38,7 +38,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     private SRTimer[] timers;
 
-    private int tripleAck = 0;
+    private int tripleAck[];
 
     private int rpdtAck = -1;
 
@@ -60,11 +60,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     //CONGESTION WINDOW CONTROL
 
-    private double oldSize;
-
-    private double newSize;
-
-    private final int mss = 1;
+    private final int MSS = 1;
 
     private double slowStartTresh = 20;
 
@@ -126,6 +122,7 @@ public class SRProtocol implements IPInterfaceListener{
         this.packetLst = packetLst;
         this.buffer = new SRPacket[packetLst.length];
         this.timers = new SRTimer[packetLst.length];
+        this.tripleAck = new int[packetLst.length];
         this.lossProb = lossProb;
         host.getIPLayer().addListener(IP_SR_PROTOCOL, this);
     }
@@ -160,7 +157,7 @@ public class SRProtocol implements IPInterfaceListener{
         timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), /*RTO*/ 3, dst, seqNumber);
         timers[seqNumber].start();
 
-        if (tripleAck == 3){
+        if (tripleAck[seqNumber] == 3){
             System.out.println(" WARNING : Triple Ack");
         }
 
@@ -168,7 +165,7 @@ public class SRProtocol implements IPInterfaceListener{
             System.out.println(" WARNING : TIMEOUT");
         }
 
-        System.out.println(" WARNING : Resend packet N° : " + seqNumber);
+        //System.out.println(" WARNING : Resend packet N° : " + seqNumber);
         host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packetLst[seqNumber]);
 
         slowStartTresh = size / 2;
@@ -226,14 +223,47 @@ public class SRProtocol implements IPInterfaceListener{
         //first check if its an ACK
 
         if(packet.isAnAck()){
-            //First check for corruption ?????
             System.out.println(" RECEIVED ACK N° : " +packet.seqNumber);
+
+            final int notSent = sendBase + Double.valueOf(size).intValue();
+
+            //System.out.println("Stopped at packet nb " + unsent);
+
+            // triple ack control
+            tripleAck[packet.seqNumber]++;
+            if(tripleAck[packet.seqNumber] == 3) {
+                System.out.println("WARN: Triple ack");
+                timeout(datagram.src, packet.seqNumber);
+                size = size / 2;
+                tripleAck[packet.seqNumber] = 0;
+            }
+
+            //final double oldSize = size;
+            if(size <= slowStartTresh) {
+                size += MSS;
+            } else {
+                size += MSS/size;
+            }
+
+            //final double offset = size - oldSize;
+
             if(sendBase <= packet.seqNumber && packet.seqNumber < sendBase + size) {
                timers[packet.seqNumber].stop();
                packetLst[sendBase].setAsAcknowledged();
                 if(packet.seqNumber == sendBase) {
-                    while (packetLst[sendBase].isAcknowledged() && sendBase < packetLst.length)
+                    while (packetLst[sendBase].isAcknowledged() && sendBase < packetLst.length - 1)
                         sendBase ++;
+                }
+            }
+
+            if(sendBase == packetLst.length - 1) {
+                System.out.println("THE END");
+            }
+
+            for (int i = notSent; i < sendBase + size; i++){
+                if(i < packetLst.length) {
+                    System.out.println("Progressing window");
+                    send(packetLst[i].data, datagram.src);
                 }
             }
         }
@@ -266,6 +296,4 @@ public class SRProtocol implements IPInterfaceListener{
             }
         }
     }
-
-    private final ArrayList<Integer> appData = new ArrayList<>();
 }
