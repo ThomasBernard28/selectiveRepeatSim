@@ -4,6 +4,7 @@ import reso.common.AbstractTimer;
 import reso.ip.*;
 import reso.scheduler.AbstractScheduler;
 
+import java.io.FileWriter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Random;
@@ -38,7 +39,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     private SRTimer[] timers;
 
-    private int tripleAck[];
+    private int[] tripleAck;
 
     private int rpdtAck = -1;
 
@@ -56,7 +57,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     //DATA EXPORT VARIABLES
 
-    private String dataExport;
+    private String dataExport = "";
 
     //CONGESTION WINDOW CONTROL
 
@@ -170,7 +171,7 @@ public class SRProtocol implements IPInterfaceListener{
 
         slowStartTresh = size / 2;
         size = 1;
-        dataExport += "Current Time : " + host.getNetwork().getScheduler().getCurrentTime() + ", Window size :" + size + "\n";
+        dataExport += host.getNetwork().getScheduler().getCurrentTime() + "," + size + "\n";
     }
 
 
@@ -245,7 +246,7 @@ public class SRProtocol implements IPInterfaceListener{
                 size += MSS/size;
             }
 
-            //final double offset = size - oldSize;
+            dataExport += host.getNetwork().getScheduler().getCurrentTime() + "," + size + "\n";
 
             if(sendBase <= packet.seqNumber && packet.seqNumber < sendBase + size) {
                timers[packet.seqNumber].stop();
@@ -256,12 +257,24 @@ public class SRProtocol implements IPInterfaceListener{
                 }
             }
 
-            if(sendBase == packetLst.length - 1) {
+            boolean imDone = true;
+            for (int i = packetLst.length - Double.valueOf(size).intValue(); i < packetLst.length; i++ ) {
+                if (!packetLst[i].isAcknowledged()) {
+                    imDone = false;
+                    break;
+                }
+            }
+            if(imDone) {
+                FileWriter fw = new FileWriter("SizeOfWindow.csv");
+                fw.write(dataExport);
+                fw.close();
                 System.out.println("THE END");
             }
 
+
+
             for (int i = notSent; i < sendBase + size; i++){
-                if(i < packetLst.length) {
+                if(i < packetLst.length && !packetLst[i].isAcknowledged()) {
                     System.out.println("Progressing window");
                     send(packetLst[i].data, datagram.src);
                 }
