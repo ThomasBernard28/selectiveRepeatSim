@@ -9,12 +9,12 @@ import java.util.Random;
 
 public class SRProtocol implements IPInterfaceListener{
 
-    // IP VARIABLES
+    // IP VARIABLES /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
     public static final int IP_SR_PROTOCOL = Datagram.allocateProtocolNumber("SELECTIVE_REPEAT");
 
     private final IPHost host;
 
-    //PACKET VARIABLES
+    //PACKET VARIABLES /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
     public int seqNumber = 0;
 
     public int sendBase = 0;
@@ -25,20 +25,20 @@ public class SRProtocol implements IPInterfaceListener{
 
     public SRPacket[] buffer;
 
-    //LOSS PROBABILITY VARIABLES
+    //LOSS PROBABILITY VARIABLES /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
     private static Random random = new Random();
 
     private double lossProb;
 
-    //TIMER VARIABLES
+    //TIMER VARIABLES /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
     private SRTimer[] timers;
 
     private int[] tripleAck;
 
 
-    // RTP VARIABLES
+    // RTP VARIABLES /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
     private double srtt;
 
@@ -46,13 +46,13 @@ public class SRProtocol implements IPInterfaceListener{
 
     private double rto = 3;
 
-    //DATA EXPORT VARIABLES
+    //DATA EXPORT VARIABLES /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
     private String dataExport = "";
 
-    //CONGESTION WINDOW CONTROL
+    //CONGESTION WINDOW CONTROL /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
-    private double slowStartTresh = 20;
+    private double slowStartThresh = 25;
 
     public double windowSize = 1;
 
@@ -60,9 +60,7 @@ public class SRProtocol implements IPInterfaceListener{
 
     public double offset;
 
-
-
-    //TIMER CLASS
+    //TIMER CLASS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
     private class SRTimer extends AbstractTimer {
 
@@ -89,6 +87,7 @@ public class SRProtocol implements IPInterfaceListener{
                 timeout(dst, seqNumber);
                 System.out.println("App=[" + host.name + "] Packet : " +seqNumber + " time= " +scheduler.getCurrentTime());
             }
+
         }
 
         @Override
@@ -107,7 +106,7 @@ public class SRProtocol implements IPInterfaceListener{
             return stopTime - startTime;
         }
     }
-    // CONSTRUCTORS AND METHODS
+    // CONSTRUCTORS AND METHODS /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
     //Receiver constructor
     public SRProtocol(IPHost host, double lossProb) throws Exception{
@@ -175,7 +174,7 @@ public class SRProtocol implements IPInterfaceListener{
         //congestion window management
         oldSize = windowSize;
         windowSize = 1;
-        slowStartTresh = oldSize / 2;
+        slowStartThresh = oldSize / 2;
 
         //data export management
         dataExport += host.getNetwork().getScheduler().getCurrentTime() + ", " + windowSize + "\n";
@@ -256,12 +255,12 @@ public class SRProtocol implements IPInterfaceListener{
 
                 //update window
                 windowSize = windowSize / 2;
-                slowStartTresh = windowSize;
+                slowStartThresh = windowSize;
                 dataExport += host.getNetwork().getScheduler().getCurrentTime() + ", " + windowSize + "\n";
             }
 
             oldSize = windowSize;
-            if (windowSize < slowStartTresh){
+            if (windowSize < slowStartThresh){
                 windowSize ++;
             }
             else {
