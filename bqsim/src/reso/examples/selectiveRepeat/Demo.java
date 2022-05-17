@@ -1,4 +1,4 @@
-package reso.examples.selectiveRepeatv3;
+package reso.examples.selectiveRepeat;
 
 import reso.common.Link;
 import reso.common.Network;
