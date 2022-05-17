@@ -7,6 +7,7 @@ public class SRPacket implements Message {
     public final int data;
     public final int seqNumber;
     public final boolean isAnAck;
+    public int recvBase;
 
     public boolean acknowledged = false;
 
@@ -24,10 +25,11 @@ public class SRPacket implements Message {
     /**
      * Constructor for an ACK
      */
-    public SRPacket(int seqNumber){
+    public SRPacket(int seqNumber, int recvBase, boolean isAnAck){
         this.seqNumber = seqNumber;
         this.isAnAck = true;
         this.data = -1;
+        this.recvBase = recvBase;
     }
 
     public boolean isAnAck() {

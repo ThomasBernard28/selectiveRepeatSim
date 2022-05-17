@@ -10,6 +10,8 @@ public class AppReceiver extends AbstractApplication {
 
     private final double lossProb;
 
+    private int totalPktNumber;
+
     public AppReceiver(IPHost host, double lossProb){
         super(host, "receiver");
         this.ip = host.getIPLayer();

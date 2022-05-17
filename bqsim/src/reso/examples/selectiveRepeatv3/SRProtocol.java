@@ -5,8 +5,6 @@ import reso.ip.*;
 import reso.scheduler.AbstractScheduler;
 
 import java.io.FileWriter;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Random;
 
 public class SRProtocol implements IPInterfaceListener{
@@ -18,8 +16,6 @@ public class SRProtocol implements IPInterfaceListener{
 
     //PACKET VARIABLES
     public int seqNumber = 0;
-
-    public double size = 1;
 
     public int sendBase = 0;
 
@@ -41,13 +37,8 @@ public class SRProtocol implements IPInterfaceListener{
 
     private int[] tripleAck;
 
-    private int rpdtAck = -1;
 
     // RTP VARIABLES
-
-    private static double alpha = 0.125;
-
-    private static double beta = 0.25;
 
     private double srtt;
 
@@ -61,9 +52,15 @@ public class SRProtocol implements IPInterfaceListener{
 
     //CONGESTION WINDOW CONTROL
 
-    private final int MSS = 1;
-
     private double slowStartTresh = 20;
+
+    public double windowSize = 1;
+
+    public double oldSize;
+
+    public double offset;
+
+
 
     //TIMER CLASS
 
@@ -84,18 +81,20 @@ public class SRProtocol implements IPInterfaceListener{
             this.dst =dst;
             this.seqNumber = seqNumber;
         }
-        @Override
+
+
         protected void run() throws Exception{
-            timeout(dst, seqNumber);
-            System.out.println("App=[" + host.name + "] Packet : " +seqNumber + " time= " +scheduler.getCurrentTime());
+            if(!packetLst[seqNumber].isAcknowledged()){
+                stop();
+                timeout(dst, seqNumber);
+                System.out.println("App=[" + host.name + "] Packet : " +seqNumber + " time= " +scheduler.getCurrentTime());
+            }
         }
 
         @Override
         public void start(){
-            if (seqNumber < packetLst.length){
-                super.start();
-                startTime = scheduler.getCurrentTime();
-            }
+            super.start();
+            startTime = scheduler.getCurrentTime();
         }
 
         @Override
@@ -118,6 +117,8 @@ public class SRProtocol implements IPInterfaceListener{
         this.buffer = new SRPacket[50];
     }
 
+
+
     public SRProtocol(IPHost host, SRPacket[] packetLst, double lossProb){
         this.host = host;
         this.packetLst = packetLst;
@@ -126,11 +127,13 @@ public class SRProtocol implements IPInterfaceListener{
         this.tripleAck = new int[packetLst.length];
         this.lossProb = lossProb;
         host.getIPLayer().addListener(IP_SR_PROTOCOL, this);
+        dataExport += host.getNetwork().getScheduler().getCurrentTime() + ", " + windowSize + "\n";
     }
 
     private double getSRTT(int seqNumber){
+        double alpha = 0.125;
         if (srtt > 0){
-            srtt = ((1-alpha) * this.srtt + (alpha * timers[seqNumber].getR()));
+            srtt = (1-alpha) * srtt + alpha * timers[seqNumber].getR();
         }
         else{
             srtt = timers[seqNumber].getR();
@@ -139,23 +142,23 @@ public class SRProtocol implements IPInterfaceListener{
     }
 
     private double getDevRtt(int seqNumber){
+        double beta = 0.25;
         if (devRtt > 0){
-            devRtt = ((1-beta) * devRtt + (beta * Math.abs(getSRTT(seqNumber) - timers[seqNumber].getR())));
+            devRtt = (1 - beta) * devRtt + beta * Math.abs((srtt - timers[seqNumber].getR()));
         }
         else{
-            devRtt = timers[seqNumber].getR();
+            devRtt = timers[seqNumber].getR() / 2;
         }
         return devRtt;
     }
 
     private void changeRTO(int seqNumber){
-        double devRTT = getDevRtt(seqNumber);
-        rto = 4 * devRTT + getSRTT(seqNumber);
+        rto = 4*getDevRtt(seqNumber) + getSRTT(seqNumber);
     }
 
     public void timeout(IPAddress dst, int seqNumber)throws Exception{
         changeRTO(seqNumber);
-        timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), /*RTO*/ 3, dst, seqNumber);
+        timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), rto, dst, seqNumber);
         timers[seqNumber].start();
 
         if (tripleAck[seqNumber] == 3){
@@ -166,30 +169,40 @@ public class SRProtocol implements IPInterfaceListener{
             System.out.println(" WARNING : TIMEOUT");
         }
 
-        //System.out.println(" WARNING : Resend packet N° : " + seqNumber);
+        //Resending pkt
         host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packetLst[seqNumber]);
 
-        slowStartTresh = size / 2;
-        size = 1;
-        dataExport += host.getNetwork().getScheduler().getCurrentTime() + "," + size + "\n";
+        //congestion window management
+        oldSize = windowSize;
+        windowSize = 1;
+        slowStartTresh = oldSize / 2;
+
+        //data export management
+        dataExport += host.getNetwork().getScheduler().getCurrentTime() + ", " + windowSize + "\n";
     }
 
 
     public void send(int data, IPAddress dst) throws Exception{
-        if (seqNumber < sendBase + size && seqNumber < packetLst.length){
+        if (seqNumber < sendBase + windowSize && seqNumber < packetLst.length){
             SRPacket packet = new SRPacket(data, seqNumber);
             packetLst[seqNumber] = packet;
-
+            //timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), rto, dst, seqNumber);
 
             double x = random.nextDouble();
             //In this case we can send the data because x is greater than the loss prob
             if (x > lossProb){
-                System.out.println("SENDING PACKET N° : " + seqNumber);
+                System.out.println(" SENDING PACKET N° : " + seqNumber);
                 host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
                 timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), rto, dst, seqNumber);
             }
             else{
-                System.out.println(" WARNING : PACKET N° : " +packet.seqNumber + " IS LOST");
+                System.out.println(" WARNING : PACKET N° : " + packet.seqNumber + " IS LOST");
+                if (packet.seqNumber == 0){
+                    System.out.println(" RESEND PKT N° 0");
+                    host.getIPLayer().send(IPAddress.ANY, dst, IP_SR_PROTOCOL, packet);
+                    timers[seqNumber] = new SRTimer(host.getNetwork().getScheduler(), rto, dst, packet.seqNumber);
+                }
+
             }
 
             //If the current packet is the first packet to be sent in the emission window then run a timer on it
@@ -205,8 +218,9 @@ public class SRProtocol implements IPInterfaceListener{
         }
     }
 
-    public void sendACK(Datagram datagram) throws Exception{
-        SRPacket packet = new SRPacket(((SRPacket) datagram.getPayload()).seqNumber);
+    public void sendACK(Datagram datagram, int recvBase) throws Exception{
+        SRPacket packet = new SRPacket(((SRPacket) datagram.getPayload()).seqNumber, recvBase, true);
+        this.recvBase = recvBase;
 
         double x = random.nextDouble();
 
@@ -214,98 +228,89 @@ public class SRProtocol implements IPInterfaceListener{
             System.out.println("SENDING ACK FOR PACKET N° : " + packet.seqNumber);
             host.getIPLayer().send(IPAddress.ANY, datagram.src, IP_SR_PROTOCOL, packet);
         }
+        else{
+            sendACK(datagram, recvBase);
+        }
     }
-
     @Override
     public void receive(IPInterfaceAdapter src, Datagram datagram) throws Exception{
 
-        SRPacket packet = (SRPacket) datagram.getPayload();
+        SRPacket rcvdPacket = (SRPacket) datagram.getPayload();
 
-        //first check if its an ACK
+        //if ack
+        if (rcvdPacket.isAnAck){
+            this.recvBase = rcvdPacket.recvBase + 1;
+            timers[rcvdPacket.seqNumber].stop();
+            changeRTO(rcvdPacket.seqNumber);
 
-        if(packet.isAnAck()){
-            System.out.println(" RECEIVED ACK N° : " +packet.seqNumber);
+            System.out.println("RECEIVED ACK FOR PKT N° " + rcvdPacket.seqNumber);
 
-            final int notSent = sendBase + Double.valueOf(size).intValue();
 
-            //System.out.println("Stopped at packet nb " + unsent);
-
-            // triple ack control
-            tripleAck[packet.seqNumber]++;
-            if(tripleAck[packet.seqNumber] == 3) {
+            tripleAck[rcvdPacket.seqNumber]++;
+            if(tripleAck[rcvdPacket.seqNumber] == 3) {
                 System.out.println("WARN: Triple ack");
-                timeout(datagram.src, packet.seqNumber);
-                size = size / 2;
-                tripleAck[packet.seqNumber] = 0;
+
+                //Timeout and refresh packet
+                timeout(datagram.src, rcvdPacket.seqNumber);
+                tripleAck[rcvdPacket.seqNumber] = 0;
+
+                //update window
+                windowSize = windowSize / 2;
+                slowStartTresh = windowSize;
+                dataExport += host.getNetwork().getScheduler().getCurrentTime() + ", " + windowSize + "\n";
             }
 
-            //final double oldSize = size;
-            if(size <= slowStartTresh) {
-                size += MSS;
-            } else {
-                size += MSS/size;
+            oldSize = windowSize;
+            if (windowSize < slowStartTresh){
+                windowSize ++;
             }
+            else {
+                windowSize = windowSize + 1/windowSize;
+            }
+            offset = windowSize - oldSize;
 
-            dataExport += host.getNetwork().getScheduler().getCurrentTime() + "," + size + "\n";
+            dataExport += host.getNetwork().getScheduler().getCurrentTime() + ", " + windowSize + "\n";
 
-            if(sendBase <= packet.seqNumber && packet.seqNumber < sendBase + size) {
-               timers[packet.seqNumber].stop();
-               packetLst[sendBase].setAsAcknowledged();
-                if(packet.seqNumber == sendBase) {
-                    while (packetLst[sendBase].isAcknowledged() && sendBase < packetLst.length - 1)
-                        sendBase ++;
+            if(sendBase <= rcvdPacket.seqNumber && rcvdPacket.seqNumber < sendBase + windowSize) {
+                packetLst[sendBase].setAsAcknowledged();
+
+                if(rcvdPacket.seqNumber == sendBase) {
+                    while (packetLst[sendBase].isAcknowledged() && sendBase < packetLst.length - 1) {
+                        //deliver data
+                        sendBase++;
+                        send(packetLst[sendBase].data, datagram.src);
+                    }
+
                 }
             }
-
-            boolean imDone = true;
-            for (int i = packetLst.length - Double.valueOf(size).intValue(); i < packetLst.length; i++ ) {
-                if (!packetLst[i].isAcknowledged()) {
-                    imDone = false;
-                    break;
-                }
-            }
-            if(imDone) {
+            if(recvBase == packetLst.length) {
                 FileWriter fw = new FileWriter("SizeOfWindow.csv");
                 fw.write(dataExport);
                 fw.close();
                 System.out.println("THE END");
             }
 
-
-
-            for (int i = notSent; i < sendBase + size; i++){
-                if(i < packetLst.length && !packetLst[i].isAcknowledged()) {
-                    System.out.println("Progressing window");
-                    send(packetLst[i].data, datagram.src);
-                }
-            }
         }
-
-
-        //reciever side
         else{
-            if(packet.seqNumber - recvBase >= buffer.length) {
-                System.out.println("out of window " + (packet.seqNumber - recvBase));
-                return;
-            }
+            System.out.println(" RECEIVED PKT N° " + rcvdPacket.seqNumber);
+            if (rcvdPacket.seqNumber >= recvBase && rcvdPacket.seqNumber <= recvBase + windowSize - 1){
+                sendACK(datagram, recvBase);
 
-            System.out.println("RECEIVED PACKET N° : " + packet.seqNumber);
-            if (recvBase <= packet.seqNumber && packet.seqNumber < recvBase + size){
-
-                sendACK(datagram);
-                if (packet.seqNumber == recvBase){
-                    //for(int i = 0; i < 10; i++) System.out.print(buffer[i]);
-                    recvBase++;
-                    while(buffer[recvBase - packet.seqNumber] != null){
-                        //deliverData(buffer[recvBase].data);
+                if(recvBase == rcvdPacket.seqNumber){
+                    //deliver data
+                    recvBase ++;
+                    while (buffer[recvBase - rcvdPacket.seqNumber] != null){
+                        //deliver data
+                        buffer[recvBase - rcvdPacket.seqNumber] = null;
                         recvBase ++;
                     }
-                } else {
-                    buffer[packet.seqNumber - recvBase] = packet;
                 }
-
-            } else if (recvBase - size <= packet.seqNumber && packet.seqNumber < recvBase){
-                sendACK(datagram);
+                else{
+                    buffer[rcvdPacket.seqNumber - recvBase] = rcvdPacket;
+                }
+            }
+            else if (rcvdPacket.seqNumber >= recvBase - windowSize && rcvdPacket.seqNumber <= recvBase - 1){
+                sendACK(datagram, recvBase);
             }
         }
     }
