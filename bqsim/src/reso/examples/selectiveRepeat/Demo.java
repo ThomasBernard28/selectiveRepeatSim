@@ -14,6 +14,10 @@ import reso.utilities.NetworkBuilder;
 
 import java.util.Scanner;
 
+/**
+ * Main class created to simply run the Simulator.
+ * The class is based on the Demo class from pingpong protocol.
+ */
 public class Demo {
 
     public static void main(String[] args) {
