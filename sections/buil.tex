@@ -1,0 +1,41 @@
+\documentclass[../rapport.tex]{subfiles}
+
+
+\begin{document}
+
+\subsection{Building}
+
+	Pour pouvoir build et run le projet il faut effectueur les deux commandes au sein du package 
+	suivant \textit{bqsim.src} : 
+		
+		\begin{enumerate}
+			\item\textbf{Build : }  javac reso/examples/selectiverepeat/Demo.java
+			\item\textbf{Running :} java reso/examples/selectiverepeat/Demo
+
+		\end{enumerate}
+
+\subsection{Lancement de l'application} 
+
+Pour l'éxécution de l'application et les choix des paramètres liés à la simualtion, nous avons
+décidés d'utiliser des entrées claviers plutôt que de demande à l'utilisateur d'ajouter
+un argument à la commande passée à la console pour l'exécution. 
+
+\medskip
+
+C'est pourquoi lors du lancement l'utilisateur est invité à choisir le nombre de paaquets
+qu'il souhaite envoyer, la longueur du lien en km, le bitrate en bit/s et pour finir 
+le taux de chance lié à la perte d'un paquet et/ou ACK.
+
+\medskip
+
+Concernant ce taux de probabilité il varie entre 0 et 1. Au cours du testing nous avons remarqué
+que le format d'entrée variait en fonction du système d'eploitation en effet, sous linux, le 
+double doit être représenté comme suit (x.x) et sous macOS comme suit (0,0).
+
+\medskip 
+
+Une fois les paramètres entrés l'application démarre et on peut suivre l'évolution de la 
+simulation via la console.
+
+\newpage
+\end{document}

@@ -1,0 +1,27 @@
+\documentclass[../rapport.tex]{subfiles}
+
+\begin{document}
+
+Le problème majeur rencontré au cours de l'implémentation est le problème responsable de la 
+présence du numéro de séquence du paquet attendu par la fenêtre de réception dans le constructeur
+d'un SRPacket de type ACK. 
+
+\medskip
+
+En effet, à cause du double constructeur dans le SRProtocol nous nous retrouvons avec 2 instances
+possédant des attributs différents. Le recvBase n'était en effet mis à jour que du côté du
+\textit{Receiver} ce qui posait problème lors de la reception des ACK car nous vérifions
+à chaque réception d'un ACK si le recvBase est égale au nombre de paquets total afin d'écrire
+le message de fin et de sauvegarder les données de la window dans un fichier. Or la réception
+d'ACK se fait dans l'instance du \textit{Sender} c'est donc la raison pour laquelle lors de la 
+création de l'ACK la valeur actuelle de recvBase est passée en paramètre afin de mettre celle
+du \textit{Sender} à jour. 
+
+\medskip
+
+Un moyen de solutionner ce problème serait d'écrire directement les modifications dans le 
+fichier au fur et à mesure qu'elles ont lieu. Cela aurait impliqué une trop grande révision du
+code et aurait rajouté une lenteur au cours de la simulation plutôt qu'elle ait lieu une fois la 
+simulation terminée. C'est pourquoi nous avons décidé de laisser le code en l'état. 
+
+\end{document}

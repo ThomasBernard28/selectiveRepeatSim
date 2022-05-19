@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dae3db10-10b5-4dd5-81ad-716dae2a9c74" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/AppReceiver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/AppReceiver.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/AppSender.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/AppSender.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/Demo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/Demo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/SRPacket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/SRPacket.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/SRProtocol.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/reso/examples/selectiveRepeat/SRProtocol.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +54,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
   </component>
-  <component name="RunManager" selected="Application.Demo (5)">
+  <component name="RunManager" selected="Application.Demo">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="HTML_USED" value="false" />
       <option name="WIDTH" value="400" />
@@ -110,13 +105,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Demo (5)" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="reso.examples.selectiveRepeat.Demo" />
+    <configuration name="Demo" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="reso.examples.selectiverepeat.Demo" />
       <module name="bqsim" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="reso.examples.selectiveRepeat.*" />
+          <option name="PATTERN" value="reso.examples.pingpong.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -125,11 +119,12 @@
       </method>
     </configuration>
     <configuration name="Demo" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="reso.examples.selectiverepeat.Demo" />
+      <option name="ALTERNATIVE_JRE_PATH" value="jbr-11" />
+      <option name="MAIN_CLASS_NAME" value="reso.examples.selectiveRepeat.Demo" />
       <module name="bqsim" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="reso.examples.pingpong.*" />
+          <option name="PATTERN" value="reso.examples.selectiveRepeat.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -196,15 +191,14 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="Application.Demo" />
       <item itemvalue="Application.Demo (3)" />
       <item itemvalue="Application.Demo (4)" />
       <item itemvalue="Application.Demo (1)" />
-      <item itemvalue="Application.Demo (5)" />
+      <item itemvalue="Application.Demo" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Demo (5)" />
+        <item itemvalue="Application.Demo" />
         <item itemvalue="Application.Demo (1)" />
         <item itemvalue="Application.Demo" />
         <item itemvalue="Application.Demo (4)" />
@@ -231,7 +225,8 @@
       <workItem from="1652284866469" duration="11502000" />
       <workItem from="1652704291197" duration="1562000" />
       <workItem from="1652776705020" duration="18130000" />
-      <workItem from="1652863519327" duration="5622000" />
+      <workItem from="1652863519327" duration="5974000" />
+      <workItem from="1652971206667" duration="216000" />
     </task>
     <servers />
   </component>

@@ -1,3 +1,18 @@
 \babel@toc {french}{}
-\contentsline {section}{\numberline {1}Intro}{2}{section.1}%
-\contentsline {section}{\numberline {2}Outro}{3}{section.2}%
+\contentsline {section}{\numberline {1}Build et exécution du code}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Building}{2}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Lancement de l'application}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Choix d'implémentation}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}AppSender et Appreceiver}{3}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}SRPacket}{3}{subsection.2.2}%
+\contentsline {paragraph}{Constructeur pour un paquet de données}{3}{section*.2}%
+\contentsline {paragraph}{Constructeur pour un ACK}{3}{section*.3}%
+\contentsline {paragraph}{Méthodes propres à la classe}{3}{section*.4}%
+\contentsline {subsection}{\numberline {2.3}SRProtocol}{4}{subsection.2.3}%
+\contentsline {paragraph}{SRTimer}{4}{section*.5}%
+\contentsline {paragraph}{Le Protocole}{4}{section*.6}%
+\contentsline {paragraph}{Double constructeur}{4}{section*.7}%
+\contentsline {subsection}{\numberline {2.4}Congestion Control}{5}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Plot de l'évolution de la windowSize}{5}{subsection.2.5}%
+\contentsline {section}{\numberline {3}Problèmes rencontrés au cours de l'implémentation}{6}{section.3}%
+\contentsline {section}{\numberline {4}Améliorations}{6}{section.4}%

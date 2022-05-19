@@ -1,0 +1,131 @@
+\documentclass[../rapport.tex]{subfiles}
+
+\begin{document}
+\subsection{AppSender et Appreceiver}
+
+	Ces deux classes représentes la couche application du Sender et du Receiver dans le 
+	protocole. Leur implémentation est basée sur l'implémentation du protocole d'exemple 
+	\textit{PingPong}. 
+
+	\medskip
+
+	Néanmoins dans le cas du Sender, lors de l'instanciation nous avons rajouté
+	un paramètre \textbf{totalPacketNumber} afin de pouvoir plus tard générer la liste
+	de paquets à envoyer via le protocole. 
+
+	\medskip
+	Nous avons également rajouté un paramètre commun aux deux applications qui est le 
+	\textbf{lossProb} et qui est la probabilité de perdre un paquet ou un ack c'est pourquoi le
+	paramètre est présent des deux côtés. 
+
+
+\subsection{SRPacket}
+
+	La classe SRPacket incarne la gestion des messages du protocole, c'est au sein de cette 
+	classe que sont instanciés les paquets envoyés via notre protocole. Cette classe est
+	composée de deux constructeurs au lieu d'un car en effet, nous avons jugé qu'il était
+	plus simple de gérer les paquets si nous faisions une distinction entre les ACK et les
+	paquets de données. 
+
+	\medskip
+	Nous avons également décidé que pour des facilités d'implémentation
+	les données contenues dans un paquet seraient un unique entier ce qui est comme stipulé
+	dans la consigne une donnée "bête"
+
+	\medskip
+
+	\paragraph{Constructeur pour un paquet de données}
+	Le constructeur d'un packet de données prend deux paramètres : le numéro de séquence du
+	paquet \textbf{seqNumber} qui permet d'identifier le paquet et un entier qui représente
+	la donnée contenue dans le paquet \textbf{data}.
+
+	\paragraph{Constructeur pour un ACK}
+	Le constrcuteur d'un ACK se compose de 3 paramètres : le numéro de séquence de l'ACK, afin
+	de pouvoir identifier le paquet pour lequel il a été envoyé. Le numéro de séquence
+	actuellement attendu par la fenêtre de réception \textbf{recvBase}. La raison pour laquelle
+	ce numéro de séquence se retrouve au sein du paquet sera énoncée ci-après dans les choix
+	d'implémentation liés au SRProtocol. Et enfin, un boolean permettant de savoir s'il s'agit
+	bien d'un ACK ou non \textbf{isAnAck}.
+	Cet argument n'était pas nécessaire mais a été ajouté afin de faire la distinction entre
+	les deux constructeurs.
+
+
+	\paragraph{Méthodes propres à la classe}
+	Il y a 3 méthodes qui sont propres aux paquets du protocole de Selective Repeat et qui sont
+	les suivantes :
+	\begin{enumerate}
+		\item\textbf{isAnAck() : } La méthode retourne simplement un boolean qui définit s'il 
+			s'agit d'un ACK
+		\item\textbf{isAcknowledged() : } La méthode retourne un boolean pour savoir si un ACK
+			a bien été reçu pour le paquet en question.
+		\item\textbf{setAsAcknowledged() : } La méthode permet de définir un paquet comme ayant
+			reçu son ACK.
+	\end{enumerate}
+
+\subsection{SRProtocol}
+
+	La classe SRProtocol incarne la couche transport du Selective Repeat, il s'agit de la classe
+	principale du projet, c'est elle qui gère l'envoi et la réception des paquets ainsi que ce
+	qui en découle.	Elle contient également une classe interne \textbf{SRTimer} qui représente
+	une implémentation d'un timer dédié au Selective Repeat sur base de la classe 
+	\textbf{AbstractTimer}
+
+	\paragraph{SRTimer} Dans le cadre de l'implémentation des timers nous avons décidé
+	d'appliquer un timer à chaque paquet en lui passant le même numéro de séquence. 
+	Ainsi au sein de notre protocole nous avons un tableau de SRTimer dont chaque SRTimer
+	à l'indice i est associé au paquet dont le numéro de séquence est également i.
+
+	\paragraph{Le Protocole} Comme précisé ci-dessus les timers sont gérés sous forme de tableau
+	de la longueur de la liste des paquets. 
+
+	\medskip
+
+	Toutefois pour ce qui est de la gestion du \textit{buffer} dans le cas de la réception de
+	paquets marqués comme \textit{out-of-order} nous avons créé un tableau de taille égale
+	à 50 de manière arbitraire afin d'avoir la possibilité d'avoir une taille maximale
+	de paquet out of order décente. Le buffer est donc vidé à chaque fois que les paquets ont été
+	remis dans l'ordre. Les indices auxquels sont placés les paquets out-of-order sont calculés
+	à l'aide du numéro de séquence du paquet initialement attendu avec l'opération suivante :
+	\textit{rcvdPacket.seqNumber - recvBase} en effet si nous attendons le paquet 5 et que nous
+	recevons le 6 nous avons \textit{recvBase = 5 et seqNumber = 6} donc le paquet sera placé
+	à l'indice 1 du tableau. Lors de la réception du paquet 5 le rcvBase est incrémenté et le
+	rcvdPacket.seqNumber vaut à présent 5. Ainsi, on va dans une boucle envoyer tous les paquets
+	du buffer à l'indice \textit{recvBase - seqNumber} tant que celui ci n'est pas \textit{Null}
+	en augmentant à chaque passage le recvBase. 
+
+	\paragraph{Double constructeur} Nous avons pris la décision d'utiliser deux constructeur
+	afin d'avoir un constructeur par interface \textit{Receiver et Sender}.
+
+		\begin{enumerate}
+			\item\textbf{Sender : } S'occupe de l'initialisation du tableau des Timers, ainsi que
+				de la liste de paquets ou encore du tableaux pour le triple ack.
+			\item\textbf{Receiver : } S'occupe de l'initialisation du buffer. 
+		\end{enumerate}
+		
+\newpage
+
+\subsection{Congestion Control} Pour la gestion de la fenêtre de congestion nous nous sommes 
+simplement basé sur les formules de congestion control disponibles dans le chapitre 3 du cours 
+de réseaux. 
+
+\medskip
+
+Pour la technique du slow start nous avons initailisé une valeur arbitraire 
+\textit{slowStartThresh = 20 } qui définit la taille maximale de la fenêtre avant de passer à 
+l'additive increase. Le paramètre est changé à chaque timeout comme suit : 
+\[ \text{slowStartThresh} = \frac{\text{oldsize}}{2} \]
+Où oldsize est l'ancienne taille de la fenêtre. 
+
+\medskip
+
+Une fois ce seuil atteint l'augmentation de la taille de la fenêtre est régi pas la formule :
+\[ \text{windowSize} += \frac{1}{\text{windowSize}} \].
+
+
+\subsection{Plot de l'évolution de la windowSize} A chaque fois que nous modifions la taille 
+de la window, nous ajoutons la modification dans une \textit{String} qui contient la taille 
+actuelle ainsi que le temps du \textit{Scheduler} ce changement a eu lieu. A la fin de la 
+simulation nous enregistrons les résultats obetnus dans un fichier au format .csv qui se trouve
+dans le package \textbf{bqsim}. Afin de porter les résulats en un graphique nous utilisons le site
+suivant : https://www.csvplot.com/ 
+\end{document}

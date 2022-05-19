@@ -1,0 +1,16 @@
+\documentclass[../rapport.tex]{subfiles}
+
+\begin{document}
+	
+	En l'état actuel du projet, la majorité des des fonctionnalités est fonctionnelle. Bien que l'on ressente quelques fois certaines faiblesses qui sont les suivantes :
+
+	\medskip
+
+	En termes d'améliorations nous pourrions faire une refonte du code afin qu'il n'y ait plus qu'un seul constructeur au sein du SRProtocol et retravailler la sauvegarde des données de la window
+	dans un fichier pour ne plus devoir passer de recvBase en paramètre d'un ACK. 
+
+	\medskip
+
+	On pourrait aussi améliorer la gestion de la taille du buffer ainsi que la valeur du slowStartThresh. Ces valeurs pourraient être basées sur le nombre de paquets total afin de ne plus 
+	être définies arbitrairement ce qui permettrait dans le cas du slowStartThresh d'observer un graphique plus fidèle à la réalité quant à l'évolution de la taille de la window.
+\end{document}
