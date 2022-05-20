@@ -10,8 +10,8 @@ d'un SRPacket de type ACK.
 
 En effet, à cause du double constructeur dans le SRProtocol nous nous retrouvons avec 2 instances
 possédant des attributs différents. Le recvBase n'était en effet mis à jour que du côté du
-\textit{Receiver} ce qui posait problème lors de la reception des ACK car nous vérifions
-à chaque réception d'un ACK si le recvBase est égale au nombre de paquets total afin d'écrire
+\textit{Receiver} ce qui posait problème lors de la réception des ACK car nous vérifions
+à chaque réception d'un ACK si le recvBase est égal au nombre de paquets total afin d'écrire
 le message de fin et de sauvegarder les données de la window dans un fichier. Or la réception
 d'ACK se fait dans l'instance du \textit{Sender} c'est donc la raison pour laquelle lors de la 
 création de l'ACK la valeur actuelle de recvBase est passée en paramètre afin de mettre celle

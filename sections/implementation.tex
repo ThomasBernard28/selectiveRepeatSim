@@ -3,13 +3,13 @@
 \begin{document}
 \subsection{AppSender et Appreceiver}
 
-	Ces deux classes représentes la couche application du Sender et du Receiver dans le 
+	Ces deux classes représentent la couche application du Sender et du Receiver dans le 
 	protocole. Leur implémentation est basée sur l'implémentation du protocole d'exemple 
 	\textit{PingPong}. 
 
 	\medskip
 
-	Néanmoins dans le cas du Sender, lors de l'instanciation nous avons rajouté
+	Néanmoins, dans le cas du Sender, lors de l'instanciation nous avons rajouté
 	un paramètre \textbf{totalPacketNumber} afin de pouvoir plus tard générer la liste
 	de paquets à envoyer via le protocole. 
 
@@ -80,7 +80,7 @@
 
 	\medskip
 
-	Toutefois pour ce qui est de la gestion du \textit{buffer} dans le cas de la réception de
+	Toutefois, pour ce qui est de la gestion du \textit{buffer} dans le cas de la réception de
 	paquets marqués comme \textit{out-of-order} nous avons créé un tableau de taille égale
 	à 50 de manière arbitraire afin d'avoir la possibilité d'avoir une taille maximale
 	de paquet out of order décente. Le buffer est donc vidé à chaque fois que les paquets ont été
